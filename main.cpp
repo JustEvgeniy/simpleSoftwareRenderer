@@ -7,8 +7,9 @@ const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
 const TGAColor blue = TGAColor(0, 0, 255, 255);
 
-static const int width = 800;
-static const int height = 800;
+static const int width = 850;
+static const int height = 850;
+static const int depth = 255;
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, const TGAColor &color) {
     bool steep = false;
@@ -129,6 +130,21 @@ int main(int argc, char **argv) {
 
     image.flip_vertically();
     image.write_tga_file("output.tga");
+
+    //Z-Buffer image
+    TGAImage zBufImage(width, height, TGAImage::GRAYSCALE);
+
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < height; ++j) {
+            zBufImage.set(i, j, TGAColor(zBuffer[i + j * width], 1));
+        }
+    }
+
+    zBufImage.flip_vertically();
+    zBufImage.write_tga_file("zBuffer.tga");
+
+    delete model;
+    delete[] zBuffer;
 
     return 0;
 }
