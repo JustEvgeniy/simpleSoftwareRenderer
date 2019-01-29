@@ -87,34 +87,18 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage &image, const TGAColor &col
 }
 
 int main(int argc, char **argv) {
-    TGAImage image(width, height, TGAImage::RGB);
+    auto *model = new Model("../head.obj");
 
-//    auto *model = new Model("head.obj");
-//
-//    for (int k = 0; k < runCount; ++k) {
-//        for (int i = 0; i < model->nFaces(); ++i) {
-//            std::vector<int> face = model->get_face(i);
-//            for (int j = 0; j < 3; ++j) {
-//                Vec3f v0 = model->get_vertex(get_face[j]);
-//                Vec3f v1 = model->get_vertex(get_face[(j + 1) % 3]);
-//                int x0 = (v0.x + 1) * width / 2;
-//                int y0 = (v0.y + 1) * height / 2;
-//                int x1 = (v1.x + 1) * width / 2;
-//                int y1 = (v1.y + 1) * height / 2;
-//                line(x0, y0, x1, y1, image, white);
-//            }
-//        }
-//    }
-
-    auto *model = new Model("head.obj");
-
-    Vec3f light_dir = Vec3f(0, 0, -1);
-    light_dir.normalize();
+    Vec3f lightDirection(0, 0, -1);
+    lightDirection.normalize();
 
     auto *zBuffer = new int[width * height];
     for (int i = 0; i < width * height; ++i) {
         zBuffer[i] = std::numeric_limits<int>::min();
     }
+
+    //Image
+    TGAImage image(width, height, TGAImage::RGB);
 
     for (int i = 0; i < model->nFaces(); ++i) {
         std::vector<int> face = model->get_face(i);
@@ -123,16 +107,22 @@ int main(int argc, char **argv) {
 
         for (int j = 0; j < 3; ++j) {
             Vec3f vertex = model->get_vertex(face[j]);
-            screen_c[j] = Vec3i((vertex.x + 1) * width / 2.f, (vertex.y + 1) * height / 2.f, 0);
+            screen_c[j] = Vec3i(static_cast<int>((vertex.x + 1) * width / 2.f),
+                                static_cast<int>((vertex.y + 1) * height / 2.f),
+                                static_cast<int>((vertex.z + 1) * depth / 2.f));
             world_c[j] = vertex;
         }
 
         Vec3f n = (world_c[2] - world_c[0]) ^(world_c[1] - world_c[0]);
         n.normalize();
 
-        float light_intensity = n * light_dir;
+        float light_intensity = n * lightDirection;
 
-        TGAColor color(255 * light_intensity, 255 * light_intensity, 255 * light_intensity, 255);
+        TGAColor color(static_cast<unsigned char>(255 * light_intensity),
+                       static_cast<unsigned char>(255 * light_intensity),
+                       static_cast<unsigned char>(255 * light_intensity),
+                       255);
+
         if (light_intensity > 0)
             triangle(screen_c[0], screen_c[1], screen_c[2], image, color, zBuffer);
     }
