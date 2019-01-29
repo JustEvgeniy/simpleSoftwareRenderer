@@ -7,7 +7,7 @@
 
 #include "Model.h"
 
-Model::Model(const char *filename) : verts(), faces() {
+Model::Model(const char *filename) : vertices(), faces() {
     std::ifstream in;
     in.open(filename, std::ifstream::in);
     if (in.fail())
@@ -25,7 +25,7 @@ Model::Model(const char *filename) : verts(), faces() {
             for (float &i : v.raw) {
                 iss >> i;
             }
-            verts.push_back(v);
+            vertices.push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
             std::vector<int> f;
             int iTrash, idx;
@@ -38,21 +38,21 @@ Model::Model(const char *filename) : verts(), faces() {
         }
     }
 
-    std::cerr << "# v# " << verts.size() << " f# " << faces.size() << std::endl;
+    std::cerr << "# v# " << vertices.size() << " f# " << faces.size() << std::endl;
 }
 
-int Model::nVerts() const {
-    return static_cast<int>(verts.size());
+int Model::nVertices() const {
+    return static_cast<int>(vertices.size());
 }
 
 int Model::nFaces() const {
     return static_cast<int>(faces.size());
 }
 
-Vec3f Model::vert(const int &idx) const {
-    return verts[idx];
+Vec3f Model::get_vertex(const int &idx) const {
+    return vertices[idx];
 }
 
-std::vector<int> Model::face(const int &idx) const {
+std::vector<int> Model::get_face(const int &idx) const {
     return faces[idx];
 }
