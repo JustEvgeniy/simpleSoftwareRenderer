@@ -41,7 +41,7 @@ Model::Model(const char *filename) : verts(), faces() {
     std::cerr << "# v# " << verts.size() << " f# " << faces.size() << std::endl;
 }
 
-Model::~Model() {}
+Model::~Model() = default;
 
 int Model::nVerts() {
     return static_cast<int>(verts.size());

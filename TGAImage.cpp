@@ -6,10 +6,9 @@
 #include <iostream>
 #include "TGAImage.h"
 
-TGAImage::TGAImage() : data(NULL), width(0), height(0), bytespp(0) {
-}
+TGAImage::TGAImage() : data(nullptr), width(0), height(0), bytespp(0) {}
 
-TGAImage::TGAImage(int w, int h, int bpp) : data(NULL), width(w), height(h), bytespp(bpp) {
+TGAImage::TGAImage(int w, int h, int bpp) : data(nullptr), width(w), height(h), bytespp(bpp) {
     unsigned long nbytes = width * height * bytespp;
     data = new unsigned char[nbytes];
     memset(data, 0, nbytes);
@@ -25,12 +24,12 @@ TGAImage::TGAImage(const TGAImage &img) {
 }
 
 TGAImage::~TGAImage() {
-    if (data) delete[] data;
+    delete[] data;
 }
 
 TGAImage &TGAImage::operator=(const TGAImage &img) {
     if (this != &img) {
-        if (data) delete[] data;
+        delete[] data;
         width = img.width;
         height = img.height;
         bytespp = img.bytespp;
@@ -42,8 +41,8 @@ TGAImage &TGAImage::operator=(const TGAImage &img) {
 }
 
 bool TGAImage::read_tga_file(const char *filename) {
-    if (data) delete[] data;
-    data = NULL;
+    delete[] data;
+    data = nullptr;
     std::ifstream in;
     in.open(filename, std::ios::binary);
     if (!in.is_open()) {
@@ -257,7 +256,7 @@ TGAColor TGAImage::get(int x, int y) {
     return TGAColor(data + (x + y * width) * bytespp, bytespp);
 }
 
-bool TGAImage::set(int x, int y, TGAColor c) {
+bool TGAImage::set(int x, int y, const TGAColor &c) {
     if (!data || x < 0 || y < 0 || x >= width || y >= height) {
         return false;
     }
@@ -278,7 +277,8 @@ int TGAImage::get_height() {
 }
 
 bool TGAImage::flip_horizontally() {
-    if (!data) return false;
+    if (!data)
+        return false;
     int half = width >> 1;
     for (int i = 0; i < half; i++) {
         for (int j = 0; j < height; j++) {
@@ -292,7 +292,8 @@ bool TGAImage::flip_horizontally() {
 }
 
 bool TGAImage::flip_vertically() {
-    if (!data) return false;
+    if (!data)
+        return false;
     unsigned long bytes_per_line = width * bytespp;
     unsigned char *line = new unsigned char[bytes_per_line];
     int half = height >> 1;
