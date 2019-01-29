@@ -22,8 +22,8 @@ Model::Model(const char *filename) : vertices(), faces() {
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
             Vec3f v;
-            for (float &i : v.raw) {
-                iss >> i;
+            for (int i = 0; i < 3; ++i) {
+                iss >> v[i];
             }
             vertices.push_back(v);
         } else if (!line.compare(0, 2, "f ")) {

@@ -51,12 +51,14 @@ void line(const Vec2i &vec1, const Vec2i &vec2, TGAImage &image, const TGAColor 
 void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage &image, const TGAColor &color, int zBuffer[]) {
     if (t0.y == t1.y && t0.y == t2.y)
         return;
+
     if (t0.y > t1.y)
         std::swap(t0, t1);
     if (t0.y > t2.y)
         std::swap(t0, t2);
     if (t1.y > t2.y)
         std::swap(t1, t2);
+
     int total_height = t2.y - t0.y;
     for (int i = 0; i < total_height; i++) {
         bool second_half = i > t1.y - t0.y || t1.y == t0.y;
@@ -64,19 +66,18 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage &image, const TGAColor &col
 
         float alpha = float(i) / total_height;
         float beta = float(i - (second_half ? t1.y - t0.y : 0)) / segment_height;
-        Vec3i A = t0 + Vec3i(t2 - t0) * alpha;
-        Vec3i B = second_half ? t1 + Vec3i(t2 - t1) * beta : t0 + Vec3i(t1 - t0) * beta;
+        Vec3i A = t0 + Vec3f(t2 - t0) * alpha;
+        Vec3i B = second_half ? t1 + Vec3f(t2 - t1) * beta : t0 + Vec3f(t1 - t0) * beta;
 
         if (A.x > B.x)
             std::swap(A, B);
 
-        for (int j = A.x; j <= B.x; j++) {
-            float phi = B.x == A.x ? 1.f : float(j - A.x) / (B.x - A.x);
-            Vec3i P = Vec3i(A) + Vec3i(B - A) * phi;
-            P.x = j;
-            P.y = t0.y + i;
-            int idx = P.x + P.y * width;
+        for (int x = A.x; x <= B.x; x++) {
+            float phi = A.x == B.x ? 1.f : float(x - A.x) / (B.x - A.x);
 
+            Vec3i P = Vec3f(A) + Vec3f(B - A) * phi;
+
+            int idx = P.x + P.y * width;
             if (zBuffer[idx] < P.z) {
                 zBuffer[idx] = P.z;
                 image.set(P.x, P.y, color);
