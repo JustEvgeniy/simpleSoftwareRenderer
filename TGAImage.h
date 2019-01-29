@@ -66,9 +66,9 @@ struct TGAColor {
 class TGAImage {
 protected:
     unsigned char *data;
-    int width;
-    int height;
-    int bytespp;
+    unsigned int width;
+    unsigned int height;
+    unsigned int bytespp;
 
     bool load_rle_data(std::ifstream &in);
 
@@ -81,7 +81,7 @@ public:
 
     TGAImage();
 
-    TGAImage(int w, int h, int bpp);
+    TGAImage(unsigned int w, unsigned int h, unsigned int bpp);
 
     TGAImage(const TGAImage &img);
 
@@ -93,11 +93,11 @@ public:
 
     bool flip_vertically();
 
-    bool scale(int w, int h);
+    bool scale(const unsigned int &w, const unsigned int &h);
 
-    TGAColor get(int x, int y);
+    TGAColor get(const int &x, const int &y) const;
 
-    bool set(int x, int y, const TGAColor &c);
+    bool set(const int &x, const int &y, const TGAColor &c);
 
     ~TGAImage();
 

@@ -22,8 +22,8 @@ Model::Model(const char *filename) : verts(), faces() {
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
             Vec3f v;
-            for (int i = 0; i < 3; ++i) {
-                iss >> v.raw[i];
+            for (float &i : v.raw) {
+                iss >> i;
             }
             verts.push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
@@ -41,20 +41,18 @@ Model::Model(const char *filename) : verts(), faces() {
     std::cerr << "# v# " << verts.size() << " f# " << faces.size() << std::endl;
 }
 
-Model::~Model() = default;
-
-int Model::nVerts() {
+int Model::nVerts() const {
     return static_cast<int>(verts.size());
 }
 
-int Model::nFaces() {
+int Model::nFaces() const {
     return static_cast<int>(faces.size());
 }
 
-Vec3f Model::vert(int i) {
-    return verts[i];
+Vec3f Model::vert(const int &idx) const {
+    return verts[idx];
 }
 
-std::vector<int> Model::face(int idx) {
+std::vector<int> Model::face(const int &idx) const {
     return faces[idx];
 }

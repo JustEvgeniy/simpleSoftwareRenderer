@@ -13,17 +13,17 @@ private:
     std::vector<Vec3f> verts;
     std::vector<std::vector<int>> faces;
 public:
-    Model(const char *filename);
+    explicit Model(const char *filename);
 
-    ~Model();
+    ~Model() = default;
 
-    int nVerts();
+    int nVerts() const;
 
-    int nFaces();
+    int nFaces() const;
 
-    Vec3f vert(int i);
+    Vec3f vert(const int &idx) const;
 
-    std::vector<int> face(int idx);
+    std::vector<int> face(const int &idx) const;
 };
 
 #endif //SIMPLESOFTWARERENDERER_MODEL_H
