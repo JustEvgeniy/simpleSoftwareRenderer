@@ -10,8 +10,10 @@
 Model::Model(const char *filename) : vertices(), faces() {
     std::ifstream in;
     in.open(filename, std::ifstream::in);
-    if (in.fail())
+    if (in.fail()) {
+        std::cerr << "Failed to open file " << filename << '\n';
         return;
+    }
 
     std::string line;
     while (!in.eof()) {
