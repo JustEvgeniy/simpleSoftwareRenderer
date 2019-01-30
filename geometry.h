@@ -41,7 +41,10 @@ struct Vec2 {
     }
 
     t &operator[](const int i) {
-        if (x <= 0) return x; else return y;
+        if (x <= 0)
+            return x;
+        else
+            return y;
     }
 
     template<class>
