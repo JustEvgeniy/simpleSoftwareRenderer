@@ -101,10 +101,33 @@ void triangle(Vec3i t[], Vec2i uv[], Model *model, TGAImage &image, float intens
     }
 }
 
+Vec3f m2v(Matrix m) {
+    return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
+}
+
+Matrix v2m(Vec3f v) {
+    Matrix m(4, 1);
+    m[0][0] = v.x;
+    m[1][0] = v.y;
+    m[2][0] = v.z;
+    m[3][0] = 1;
+    return m;
+}
+
+Matrix getViewport(int x, int y, int w, int h) {
+    Matrix m = Matrix::identity(4);
+    m[0][3] = x + w / 2.f;
+    m[1][3] = y + h / 2.f;
+    m[2][3] = depth / 2.f;
+
+    m[0][0] = w / 2.f;
+    m[1][1] = h / 2.f;
+    m[2][2] = depth / 2.f;
+    return m;
+}
+
 int main(int argc, char **argv) {
     auto *model = new Model("../head.obj");
-
-    float cameraDistance = 5;
 
     Vec3f lightDirection(0, 0, -1);
     lightDirection.normalize();
@@ -114,8 +137,14 @@ int main(int argc, char **argv) {
         zBuffer[i] = std::numeric_limits<int>::min();
     }
 
+    Vec3f cameraPosition(0, 0, 3);
+
     //Image
     TGAImage image(width, height, TGAImage::RGB);
+
+    Matrix projection = Matrix::identity(4);
+    Matrix viewport = getViewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+    projection[3][2] = -1.f / cameraPosition.z;
 
     for (int iFace = 0; iFace < model->nFaces(); ++iFace) {
         std::vector<int> face = model->get_face(iFace);
@@ -124,9 +153,7 @@ int main(int argc, char **argv) {
 
         for (int j = 0; j < 3; ++j) {
             Vec3f vertex = model->get_vertex(face[j]);
-            screen_c[j] = Vec3i(static_cast<int>((vertex.x / (1 - vertex.z / cameraDistance) + 1) * width / 2.f),
-                                static_cast<int>((vertex.y / (1 - vertex.z / cameraDistance) + 1) * height / 2.f),
-                                static_cast<int>((vertex.z / (1 - vertex.z / cameraDistance) + 1) * depth / 2.f));
+            screen_c[j] = m2v(viewport * projection * v2m(vertex));
             world_c[j] = vertex;
         }
 

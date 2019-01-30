@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 template<class t>
 struct Vec2 {
@@ -140,5 +141,31 @@ std::ostream &operator<<(std::ostream &s, Vec3<t> &v) {
     s << "(" << v.x << ", " << v.y << ", " << v.z << ")\n";
     return s;
 }
+
+
+class Matrix {
+    std::vector<std::vector<float>> m;
+    uint64_t cols;
+    uint64_t rows;
+    static const int DEFAULT = 4;
+public:
+    explicit Matrix(uint64_t r = DEFAULT, uint64_t c = DEFAULT);
+
+    inline uint64_t nrows();
+
+    inline uint64_t ncols();
+
+    static Matrix identity(uint64_t dimensions);
+
+    std::vector<float> &operator[](const int i);
+
+    Matrix operator*(const Matrix &a);
+
+    Matrix transpose();
+
+    Matrix inverse();
+
+    friend std::ostream &operator<<(std::ostream &s, Matrix &m);
+};
 
 #endif //SIMPLESOFTWARERENDERER_GEOMETRY_H
