@@ -49,26 +49,26 @@ void line(const Vec2i &vec1, const Vec2i &vec2, TGAImage &image, const TGAColor 
     line(vec1.x, vec1.y, vec2.x, vec2.y, image, color);
 }
 
-void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage &image, const TGAColor &color, int zBuffer[]) {
-    if (t0.y == t1.y && t0.y == t2.y)
+void triangle(Vec3i t[], TGAImage &image, const TGAColor &color, int zBuffer[]) {
+    if (t[0].y == t[1].y && t[0].y == t[2].y)
         return;
 
-    if (t0.y > t1.y)
-        std::swap(t0, t1);
-    if (t0.y > t2.y)
-        std::swap(t0, t2);
-    if (t1.y > t2.y)
-        std::swap(t1, t2);
+    if (t[0].y > t[1].y)
+        std::swap(t[0], t[1]);
+    if (t[0].y > t[2].y)
+        std::swap(t[0], t[2]);
+    if (t[1].y > t[2].y)
+        std::swap(t[1], t[2]);
 
-    int total_height = t2.y - t0.y;
+    int total_height = t[2].y - t[0].y;
     for (int i = 0; i < total_height; i++) {
-        bool second_half = i > t1.y - t0.y || t1.y == t0.y;
-        int segment_height = second_half ? t2.y - t1.y : t1.y - t0.y;
+        bool second_half = i > t[1].y - t[0].y || t[1].y == t[0].y;
+        int segment_height = second_half ? t[2].y - t[1].y : t[1].y - t[0].y;
 
         float alpha = float(i) / total_height;
-        float beta = float(i - (second_half ? t1.y - t0.y : 0)) / segment_height;
-        Vec3i A = t0 + Vec3f(t2 - t0) * alpha;
-        Vec3i B = second_half ? t1 + Vec3f(t2 - t1) * beta : t0 + Vec3f(t1 - t0) * beta;
+        float beta = float(i - (second_half ? t[1].y - t[0].y : 0)) / segment_height;
+        Vec3i A = t[0] + Vec3f(t[2] - t[0]) * alpha;
+        Vec3i B = second_half ? t[1] + Vec3f(t[2] - t[1]) * beta : t[0] + Vec3f(t[1] - t[0]) * beta;
 
         if (A.x > B.x)
             std::swap(A, B);
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
                        static_cast<unsigned char>(255 * light_intensity));
 
         if (light_intensity > 0)
-            triangle(screen_c[0], screen_c[1], screen_c[2], image, color, zBuffer);
+            triangle(screen_c, image, color, zBuffer);
     }
 
     image.flip_vertically();
