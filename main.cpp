@@ -49,38 +49,52 @@ void line(const Vec2i &vec1, const Vec2i &vec2, TGAImage &image, const TGAColor 
     line(vec1.x, vec1.y, vec2.x, vec2.y, image, color);
 }
 
-void triangle(Vec3i t[], TGAImage &image, const TGAColor &color, int zBuffer[]) {
+void triangle(Vec3i t[], Vec2i uv[], Model *model, TGAImage &image, float intensity, int zBuffer[]) {
     if (t[0].y == t[1].y && t[0].y == t[2].y)
         return;
 
-    if (t[0].y > t[1].y)
+    if (t[0].y > t[1].y) {
         std::swap(t[0], t[1]);
-    if (t[0].y > t[2].y)
+        std::swap(uv[0], uv[1]);
+    }
+    if (t[0].y > t[2].y) {
         std::swap(t[0], t[2]);
-    if (t[1].y > t[2].y)
+        std::swap(uv[0], uv[2]);
+    }
+    if (t[1].y > t[2].y) {
         std::swap(t[1], t[2]);
+        std::swap(uv[1], uv[2]);
+    }
 
     int total_height = t[2].y - t[0].y;
     for (int i = 0; i < total_height; i++) {
-        bool second_half = i > t[1].y - t[0].y || t[1].y == t[0].y;
-        int segment_height = second_half ? t[2].y - t[1].y : t[1].y - t[0].y;
+        bool isSecondHalf = i > t[1].y - t[0].y || t[1].y == t[0].y;
+        int segment_height = isSecondHalf ? t[2].y - t[1].y : t[1].y - t[0].y;
 
         float alpha = float(i) / total_height;
-        float beta = float(i - (second_half ? t[1].y - t[0].y : 0)) / segment_height;
-        Vec3i A = t[0] + Vec3f(t[2] - t[0]) * alpha;
-        Vec3i B = second_half ? t[1] + Vec3f(t[2] - t[1]) * beta : t[0] + Vec3f(t[1] - t[0]) * beta;
+        float beta = float(i - (isSecondHalf ? t[1].y - t[0].y : 0)) / segment_height;
 
-        if (A.x > B.x)
+        Vec3i A = t[0] + Vec3f(t[2] - t[0]) * alpha;
+        Vec3i B = isSecondHalf ? t[1] + Vec3f(t[2] - t[1]) * beta : t[0] + Vec3f(t[1] - t[0]) * beta;
+
+        Vec2i uvA = uv[0] + (uv[2] - uv[0]) * alpha;
+        Vec2i uvB = isSecondHalf ? uv[1] + (uv[2] - uv[1]) * beta : uv[0] + (uv[1] - uv[0]) * beta;
+
+        if (A.x > B.x) {
             std::swap(A, B);
+            std::swap(uvA, uvB);
+        }
 
         for (int x = A.x; x <= B.x; x++) {
             float phi = A.x == B.x ? 1.f : float(x - A.x) / (B.x - A.x);
 
             Vec3i P = Vec3f(A) + Vec3f(B - A) * phi;
+            Vec2i uvP = uvA + (uvB - uvA) * phi;
 
             int idx = P.x + P.y * width;
             if (zBuffer[idx] < P.z) {
                 zBuffer[idx] = P.z;
+                TGAColor color = model->get_diffuse(uvP).intensity(intensity);
                 image.set(P.x, P.y, color);
             }
         }
@@ -101,8 +115,8 @@ int main(int argc, char **argv) {
     //Image
     TGAImage image(width, height, TGAImage::RGB);
 
-    for (int i = 0; i < model->nFaces(); ++i) {
-        std::vector<int> face = model->get_face(i);
+    for (int iFace = 0; iFace < model->nFaces(); ++iFace) {
+        std::vector<int> face = model->get_face(iFace);
         Vec3f world_c[3];
         Vec3i screen_c[3];
 
@@ -119,12 +133,14 @@ int main(int argc, char **argv) {
 
         float light_intensity = n * lightDirection;
 
-        TGAColor color(static_cast<unsigned char>(255 * light_intensity),
-                       static_cast<unsigned char>(255 * light_intensity),
-                       static_cast<unsigned char>(255 * light_intensity));
+        if (light_intensity > 0) {
+            Vec2i uv[3];
+            for (int iVertex = 0; iVertex < 3; ++iVertex) {
+                uv[iVertex] = model->get_uv(iFace, iVertex);
+            }
 
-        if (light_intensity > 0)
-            triangle(screen_c, image, color, zBuffer);
+            triangle(screen_c, uv, model, image, light_intensity, zBuffer);
+        }
     }
 
     image.flip_vertically();
