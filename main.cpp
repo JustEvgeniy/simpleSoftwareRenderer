@@ -104,6 +104,8 @@ void triangle(Vec3i t[], Vec2i uv[], Model *model, TGAImage &image, float intens
 int main(int argc, char **argv) {
     auto *model = new Model("../head.obj");
 
+    float cameraDistance = 5;
+
     Vec3f lightDirection(0, 0, -1);
     lightDirection.normalize();
 
@@ -122,9 +124,9 @@ int main(int argc, char **argv) {
 
         for (int j = 0; j < 3; ++j) {
             Vec3f vertex = model->get_vertex(face[j]);
-            screen_c[j] = Vec3i(static_cast<int>((vertex.x + 1) * width / 2.f),
-                                static_cast<int>((vertex.y + 1) * height / 2.f),
-                                static_cast<int>((vertex.z + 1) * depth / 2.f));
+            screen_c[j] = Vec3i(static_cast<int>((vertex.x / (1 - vertex.z / cameraDistance) + 1) * width / 2.f),
+                                static_cast<int>((vertex.y / (1 - vertex.z / cameraDistance) + 1) * height / 2.f),
+                                static_cast<int>((vertex.z / (1 - vertex.z / cameraDistance) + 1) * depth / 2.f));
             world_c[j] = vertex;
         }
 
