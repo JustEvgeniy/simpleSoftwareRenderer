@@ -2,10 +2,10 @@
 #include "TGAImage.h"
 #include "Model.h"
 
-const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red = TGAColor(255, 0, 0, 255);
-const TGAColor green = TGAColor(0, 255, 0, 255);
-const TGAColor blue = TGAColor(0, 0, 255, 255);
+const TGAColor white = TGAColor(255, 255, 255);
+const TGAColor red = TGAColor(255, 0, 0);
+const TGAColor green = TGAColor(0, 255, 0);
+const TGAColor blue = TGAColor(0, 0, 255);
 
 static const int width = 850;
 static const int height = 850;
@@ -121,8 +121,7 @@ int main(int argc, char **argv) {
 
         TGAColor color(static_cast<unsigned char>(255 * light_intensity),
                        static_cast<unsigned char>(255 * light_intensity),
-                       static_cast<unsigned char>(255 * light_intensity),
-                       255);
+                       static_cast<unsigned char>(255 * light_intensity));
 
         if (light_intensity > 0)
             triangle(screen_c[0], screen_c[1], screen_c[2], image, color, zBuffer);
