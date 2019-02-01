@@ -110,3 +110,14 @@ Matrix Matrix::inverse() {
             truncate[i][j] = result[i][j + cols];
     return truncate;
 }
+
+std::ostream &operator<<(std::ostream &s, Matrix &m) {
+    for (int i = 0; i < m.nrows(); i++) {
+        for (int j = 0; j < m.ncols(); j++) {
+            s << m[i][j];
+            if (j < m.ncols() - 1) s << "\t";
+        }
+        s << "\n";
+    }
+    return s;
+}

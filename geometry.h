@@ -106,7 +106,7 @@ public:
 
     int ncols();
 
-    static Matrix identity(int dimensions);
+    static Matrix identity(int dimensions = 4);
 
     std::vector<float> &operator[](int i);
 
@@ -116,7 +116,7 @@ public:
 
     Matrix inverse();
 
-//    friend std::ostream &operator<<(std::ostream &s, Matrix &m);
+    friend std::ostream &operator<<(std::ostream &s, Matrix &m);
 };
 
 #endif //SIMPLESOFTWARERENDERER_GEOMETRY_H

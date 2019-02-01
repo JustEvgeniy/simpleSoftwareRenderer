@@ -42,7 +42,7 @@ struct TGAColor {
         bgra[3] = A;
     }
 
-    TGAColor(uint8_t v, uint8_t bpp) : bgra(), bytesPerPixel(bpp) {
+    TGAColor(uint8_t v) : bgra(), bytesPerPixel(1) {
         for (int i = 0; i < 4; ++i) {
             bgra[i] = 0;
         }
@@ -60,6 +60,8 @@ struct TGAColor {
 
     TGAColor operator*(float intensity) const {
         TGAColor res = *this;
+
+        intensity = intensity > 1 ? 1 : (intensity < 0 ? 0 : intensity);
 
         for (int i = 0; i < 4; ++i) {
             res.bgra[i] = static_cast<uint8_t>(bgra[i] * intensity);

@@ -34,6 +34,8 @@ public:
 
     Vec2i get_uv(int iFace, int nVertex);
 
+    Vec3f get_norm(int iFace, int nVertex);
+
     TGAColor get_diffuse(Vec2i uv);
 };
 

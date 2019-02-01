@@ -95,10 +95,15 @@ void Model::load_texture(std::string filename, std::string suffix, TGAImage &img
 
 Vec2i Model::get_uv(int iFace, int nVertex) {
     int idx = faces[iFace][nVertex][1];
-    return Vec2i(static_cast<int>(uvs[idx].x * diffuseMap.get_width()),
-                 static_cast<int>(uvs[idx].y * diffuseMap.get_height()));
+    return {static_cast<int>(uvs[idx].x * diffuseMap.get_width()),
+            static_cast<int>(uvs[idx].y * diffuseMap.get_height())};
 }
 
 TGAColor Model::get_diffuse(Vec2i uv) {
     return diffuseMap.get(uv.x, uv.y);
+}
+
+Vec3f Model::get_norm(int iFace, int nVertex) {
+    int idx = faces[iFace][nVertex][2];
+    return norms[idx].normalize();
 }
