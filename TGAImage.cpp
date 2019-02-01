@@ -22,14 +22,14 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
         if (chunkHeader < 128) {
             chunkHeader++;
             for (int i = 0; i < chunkHeader; i++) {
-                in.read(reinterpret_cast<char *>(colorBuffer.raw), bytesPerPixel);
+                in.read(reinterpret_cast<char *>(colorBuffer.bgra), bytesPerPixel);
                 if (!in.good()) {
                     std::cerr << "An error occurred while reading the header\n";
                     return false;
                 }
 
                 for (int t = 0; t < bytesPerPixel; t++)
-                    data[currentByte++] = colorBuffer.raw[t];
+                    data[currentByte++] = colorBuffer.bgra[t];
 
                 currentPixel++;
 
@@ -40,7 +40,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
             }
         } else {
             chunkHeader -= 127;
-            in.read(reinterpret_cast<char *>(colorBuffer.raw), bytesPerPixel);
+            in.read(reinterpret_cast<char *>(colorBuffer.bgra), bytesPerPixel);
             if (!in.good()) {
                 std::cerr << "An error occurred while reading the header\n";
                 return false;
@@ -48,7 +48,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
 
             for (int i = 0; i < chunkHeader; i++) {
                 for (int t = 0; t < bytesPerPixel; t++)
-                    data[currentByte++] = colorBuffer.raw[t];
+                    data[currentByte++] = colorBuffer.bgra[t];
 
                 currentPixel++;
 
@@ -79,7 +79,7 @@ bool TGAImage::unload_rle_data(std::ofstream &out) {
                 succ_eq = (data[curByte + t] == data[curByte + t + bytesPerPixel]);
             }
             curByte += bytesPerPixel;
-            if (1 == run_length) {
+            if (run_length == 1) {
                 raw = !succ_eq;
             }
             if (raw && succ_eq) {
@@ -111,17 +111,14 @@ bool TGAImage::unload_rle_data(std::ofstream &out) {
 
 TGAImage::TGAImage() : data(nullptr), width(0), height(0), bytesPerPixel(0) {}
 
-TGAImage::TGAImage(uint32_t w, uint32_t h, uint32_t bpp) : data(nullptr), width(w), height(h), bytesPerPixel(bpp) {
+TGAImage::TGAImage(int32_t w, int32_t h, uint8_t bpp) : data(nullptr), width(w), height(h), bytesPerPixel(bpp) {
     uint64_t nBytes = width * height * bytesPerPixel;
     data = new uint8_t[nBytes];
     memset(data, 0, nBytes);
 }
 
-TGAImage::TGAImage(const TGAImage &img) {
-    width = img.width;
-    height = img.height;
-    bytesPerPixel = img.bytesPerPixel;
-
+TGAImage::TGAImage(const TGAImage &img) : data(nullptr), width(img.width), height(img.height),
+                                          bytesPerPixel(img.bytesPerPixel) {
     uint64_t nBytes = width * height * bytesPerPixel;
     data = new uint8_t[nBytes];
     memcpy(data, img.data, nBytes);
@@ -158,7 +155,7 @@ bool TGAImage::read_tga_file(std::string filename) {
     }
 
     TGA_Header header{};
-    in.read((char *) &header, sizeof(header));
+    in.read(reinterpret_cast<char *>(&header), sizeof(header));
     if (!in.good()) {
         in.close();
         std::cerr << "An error occurred while reading the header\n";
@@ -166,7 +163,7 @@ bool TGAImage::read_tga_file(std::string filename) {
     }
     width = static_cast<uint32_t>(header.width);
     height = static_cast<uint32_t>(header.height);
-    bytesPerPixel = static_cast<uint32_t>(header.bitsPerPixel >> 3);
+    bytesPerPixel = static_cast<uint8_t>(header.bitsPerPixel >> 3);
 
     if (width <= 0 || height <= 0 || (bytesPerPixel != GRAYSCALE && bytesPerPixel != RGB && bytesPerPixel != RGBA)) {
         in.close();
@@ -222,13 +219,13 @@ bool TGAImage::write_tga_file(std::string filename, bool rle) {
     }
 
     TGA_Header header{};
-    memset((void *) &header, 0, sizeof(header));
+    memset(&header, 0, sizeof(header));
     header.bitsPerPixel = static_cast<char>(bytesPerPixel << 3);
     header.width = static_cast<short>(width);
     header.height = static_cast<short>(height);
     header.dataTypeCode = static_cast<char>(bytesPerPixel == GRAYSCALE ? (rle ? 11 : 3) : (rle ? 10 : 2));
-
     header.imageDescriptor = 0x20; // top-left origin
+
     out.write(reinterpret_cast<const char *>(&header), sizeof(header));
     if (!out.good()) {
         out.close();
@@ -312,7 +309,7 @@ bool TGAImage::flip_vertically() {
     return true;
 }
 
-bool TGAImage::scale(const uint32_t &w, const uint32_t &h) {
+bool TGAImage::scale(const int32_t &w, const int32_t &h) {
     if (w <= 0 || h <= 0 || !data)
         return false;
 
@@ -356,30 +353,30 @@ bool TGAImage::scale(const uint32_t &w, const uint32_t &h) {
     return true;
 }
 
-TGAColor TGAImage::get(const int32_t &x, const int32_t &y) const {
+TGAColor TGAImage::get(const int32_t &x, const int32_t &y) {
     if (!data || x < 0 || y < 0 || x >= width || y >= height) {
-        return TGAColor();
+        return {};
     }
-    return TGAColor(data + (x + y * width) * bytesPerPixel, bytesPerPixel);
+    return {data + (x + y * width) * bytesPerPixel, bytesPerPixel};
 }
 
 bool TGAImage::set(const int32_t &x, const int32_t &y, const TGAColor &c) {
     if (!data || x < 0 || y < 0 || x >= width || y >= height) {
         return false;
     }
-    memcpy(data + (x + y * width) * bytesPerPixel, c.raw, bytesPerPixel);
+    memcpy(data + (x + y * width) * bytesPerPixel, c.bgra, bytesPerPixel);
     return true;
 }
 
-uint32_t TGAImage::get_width() {
+int32_t TGAImage::get_width() {
     return width;
 }
 
-uint32_t TGAImage::get_height() {
+int32_t TGAImage::get_height() {
     return height;
 }
 
-uint32_t TGAImage::get_bytesPerPixel() {
+uint8_t TGAImage::get_bytesPerPixel() {
     return bytesPerPixel;
 }
 

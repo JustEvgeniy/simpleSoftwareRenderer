@@ -94,24 +94,11 @@ void triangle(Vec3i t[], Vec2i uv[], Model *model, TGAImage &image, float intens
             int idx = P.x + P.y * width;
             if (zBuffer[idx] < P.z) {
                 zBuffer[idx] = P.z;
-                TGAColor color = model->get_diffuse(uvP).intensity(intensity);
+                TGAColor color = model->get_diffuse(uvP) * intensity;
                 image.set(P.x, P.y, color);
             }
         }
     }
-}
-
-Vec3f m2v(Matrix m) {
-    return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
-}
-
-Matrix v2m(Vec3f v) {
-    Matrix m(4, 1);
-    m[0][0] = v.x;
-    m[1][0] = v.y;
-    m[2][0] = v.z;
-    m[3][0] = 1;
-    return m;
 }
 
 Matrix getViewport(int x, int y, int w, int h) {
@@ -126,7 +113,7 @@ Matrix getViewport(int x, int y, int w, int h) {
     return m;
 }
 
-int main(int argc, char **argv) {
+int main() {
     auto *model = new Model("../head.obj");
 
     Vec3f lightDirection(0, 0, -1);
@@ -143,8 +130,10 @@ int main(int argc, char **argv) {
     TGAImage image(width, height, TGAImage::RGB);
 
     Matrix projection = Matrix::identity(4);
-    Matrix viewport = getViewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
     projection[3][2] = -1.f / cameraPosition.z;
+    Matrix viewport = getViewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+
+    Matrix transformMatrix = viewport * projection;
 
     for (int iFace = 0; iFace < model->nFaces(); ++iFace) {
         std::vector<int> face = model->get_face(iFace);
@@ -153,7 +142,7 @@ int main(int argc, char **argv) {
 
         for (int j = 0; j < 3; ++j) {
             Vec3f vertex = model->get_vertex(face[j]);
-            screen_c[j] = m2v(viewport * projection * v2m(vertex));
+            screen_c[j] = Vec3f(transformMatrix * Matrix(vertex));
             world_c[j] = vertex;
         }
 

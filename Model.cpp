@@ -9,7 +9,7 @@
 
 #include "Model.h"
 
-Model::Model(const char *filename) : vertices(), faces(), norms(), uvs() {
+Model::Model(const char *filename) : vertices(), faces(), norms(), uvs(), diffuseMap() {
     std::ifstream in;
     in.open(filename, std::ifstream::in);
     if (in.fail()) {

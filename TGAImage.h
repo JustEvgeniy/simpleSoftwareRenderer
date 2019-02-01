@@ -26,58 +26,54 @@ struct TGA_Header {
 
 
 struct TGAColor {
-    union {
-        struct {
-            uint8_t b, g, r, a;
-        };
-        uint8_t raw[4];
-        uint32_t val;
-    };
-    uint32_t bytesPerPixel;
+    uint8_t bgra[4];
+    uint8_t bytesPerPixel;
 
-    TGAColor() : val(0), bytesPerPixel(1) {
-    }
-
-    TGAColor(uint8_t R, uint8_t G, uint8_t B, uint8_t A = 255) : b(B), g(G), r(R), a(A),
-                                                                 bytesPerPixel(4) {
-    }
-
-    TGAColor(int32_t v, uint32_t bpp) : val(static_cast<uint32_t>(v)), bytesPerPixel(bpp) {
-    }
-
-    TGAColor(const TGAColor &c) : val(c.val), bytesPerPixel(c.bytesPerPixel) {
-    }
-
-    TGAColor(const uint8_t p[], uint32_t bpp) : val(0), bytesPerPixel(bpp) {
-        for (int i = 0; i < bpp; i++) {
-            raw[i] = p[i];
+    TGAColor() : bgra(), bytesPerPixel(1) {
+        for (int i = 0; i < 4; ++i) {
+            bgra[i] = 0;
         }
     }
 
-    TGAColor &operator=(const TGAColor &c) {
-        if (this != &c) {
-            bytesPerPixel = c.bytesPerPixel;
-            val = c.val;
-        }
-        return *this;
+    TGAColor(uint8_t R, uint8_t G, uint8_t B, uint8_t A = 255) : bgra(), bytesPerPixel(4) {
+        bgra[0] = B;
+        bgra[1] = G;
+        bgra[2] = R;
+        bgra[3] = A;
     }
 
-    TGAColor intensity(float d) {
-        TGAColor newColor(val, bytesPerPixel);
-        for (uint8_t &i : newColor.raw) {
-            i = static_cast<uint8_t>(i * d);
+    TGAColor(uint8_t v, uint8_t bpp) : bgra(), bytesPerPixel(bpp) {
+        for (int i = 0; i < 4; ++i) {
+            bgra[i] = 0;
         }
-        return newColor;
+        bgra[0] = v;
+    }
+
+    TGAColor(const uint8_t p[], uint8_t bpp) : bgra(), bytesPerPixel(bpp) {
+        for (int i = 0; i < bpp; ++i) {
+            bgra[i] = p[i];
+        }
+        for (int i = bpp; i < 4; ++i) {
+            bgra[i] = 0;
+        }
+    }
+
+    TGAColor operator*(float intensity) const {
+        TGAColor res = *this;
+
+        for (int i = 0; i < 4; ++i) {
+            res.bgra[i] = static_cast<uint8_t>(bgra[i] * intensity);
+        }
+
+        return res;
     }
 };
-
 
 class TGAImage {
 protected:
     uint8_t *data;
-    uint32_t width;
-    uint32_t height;
-    uint32_t bytesPerPixel;
+    int32_t width, height;
+    uint8_t bytesPerPixel;
 
     bool load_rle_data(std::ifstream &in);
 
@@ -90,7 +86,7 @@ public:
 
     TGAImage();
 
-    TGAImage(uint32_t w, uint32_t h, uint32_t bpp);
+    TGAImage(int32_t w, int32_t h, uint8_t bpp);
 
     TGAImage(const TGAImage &img);
 
@@ -106,17 +102,17 @@ public:
 
     bool flip_vertically();
 
-    bool scale(const uint32_t &w, const uint32_t &h);
+    bool scale(const int32_t &w, const int32_t &h);
 
-    TGAColor get(const int32_t &x, const int32_t &y) const;
+    TGAColor get(const int32_t &x, const int32_t &y);
 
     bool set(const int32_t &x, const int32_t &y, const TGAColor &c);
 
-    uint32_t get_width();
+    int32_t get_width();
 
-    uint32_t get_height();
+    int32_t get_height();
 
-    uint32_t get_bytesPerPixel();
+    uint8_t get_bytesPerPixel();
 
     uint8_t *buffer();
 
